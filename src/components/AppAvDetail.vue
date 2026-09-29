@@ -67,7 +67,7 @@ const loadDetail = async () => {
   try {
     const res = await axios.get(`/api/avscrape/library/${route.params.id}`)
     media.value = res.data
-  } catch (e) {
+  } catch {
     ElMessage.error('加载详情失败')
   }
 }
