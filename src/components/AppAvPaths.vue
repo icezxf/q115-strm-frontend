@@ -274,10 +274,14 @@ const del = async (id: number) => {
 
 const scan = async (id: number) => {
   try {
-    await axios.post(`/api/avscrape/paths/${id}/scan`)
-    ElMessage.success('扫描已启动，请稍后到「AV 刮削记录」查看')
-  } catch {
-    ElMessage.error('启动扫描失败')
+    const res = await axios.post(`/api/avscrape/paths/${id}/scan`)
+    if (res.data.ok) {
+      ElMessage.success(res.data.msg || '扫描已启动')
+    } else {
+      ElMessage.warning(res.data.msg || '扫描未启动')
+    }
+  } catch (e: any) {
+    ElMessage.error(e.response?.data?.error || '启动扫描失败')
   }
 }
 
