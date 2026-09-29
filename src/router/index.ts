@@ -24,6 +24,8 @@ import AppUpdate from '@/components/AppUpdate.vue'
 import AppAvConfig from '@/components/AppAvConfig.vue'
 import AppAvLibrary from '@/components/AppAvLibrary.vue'
 import AppAvDetail from '@/components/AppAvDetail.vue'
+import AppAvPaths from '@/components/AppAvPaths.vue'
+import AppAvTasks from '@/components/AppAvTasks.vue'
 import { createRouter, createWebHashHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
@@ -244,7 +246,7 @@ const routes = [
     },
   },
 
-  // ===== AV 刮削模块（新增） =====
+  // ===== AV 刮削模块 =====
   {
     path: '/avscrape',
     name: 'avscrape',
@@ -265,6 +267,30 @@ const routes = [
       requiresAuth: true,
       parent: 'avscrape',
       icon: 'Setting',
+      showInMenu: true,
+    },
+  },
+  {
+    path: '/avscrape-paths',
+    name: 'avscrape-paths',
+    component: AppAvPaths,
+    meta: {
+      title: 'AV刮削目录',
+      requiresAuth: true,
+      parent: 'avscrape',
+      icon: 'FolderOpened',
+      showInMenu: true,
+    },
+  },
+  {
+    path: '/avscrape-tasks',
+    name: 'avscrape-tasks',
+    component: AppAvTasks,
+    meta: {
+      title: 'AV刮削记录',
+      requiresAuth: true,
+      parent: 'avscrape',
+      icon: 'List',
       showInMenu: true,
     },
   },
