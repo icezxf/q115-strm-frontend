@@ -21,6 +21,9 @@ import AppNotificationChannels from '@/components/AppNotificationChannels.vue'
 import AppApiKeys from '@/components/AppApiKeys.vue'
 import AppFileManager from '@/components/AppFileManager.vue'
 import AppUpdate from '@/components/AppUpdate.vue'
+import AppAvConfig from '@/components/AppAvConfig.vue'
+import AppAvLibrary from '@/components/AppAvLibrary.vue'
+import AppAvDetail from '@/components/AppAvDetail.vue'
 import { createRouter, createWebHashHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
@@ -240,6 +243,54 @@ const routes = [
       showInMenu: true,
     },
   },
+
+  // ===== AV 刮削模块（新增） =====
+  {
+    path: '/avscrape',
+    name: 'avscrape',
+    redirect: '/avscrape-library',
+    meta: {
+      title: 'AV刮削',
+      requiresAuth: true,
+      icon: 'VideoCamera',
+      showInMenu: true,
+    },
+  },
+  {
+    path: '/avscrape-config',
+    name: 'avscrape-config',
+    component: AppAvConfig,
+    meta: {
+      title: 'AV刮削设置',
+      requiresAuth: true,
+      parent: 'avscrape',
+      icon: 'Setting',
+      showInMenu: true,
+    },
+  },
+  {
+    path: '/avscrape-library',
+    name: 'avscrape-library',
+    component: AppAvLibrary,
+    meta: {
+      title: 'AV媒体库',
+      requiresAuth: true,
+      parent: 'avscrape',
+      icon: 'List',
+      showInMenu: true,
+    },
+  },
+  {
+    path: '/avscrape-detail/:id',
+    name: 'avscrape-detail',
+    component: AppAvDetail,
+    meta: {
+      title: 'AV详情',
+      requiresAuth: true,
+      showInMenu: false,
+    },
+  },
+  // ==============================
 
   {
     path: '/upload-queue',
