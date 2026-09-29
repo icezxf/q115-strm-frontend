@@ -1,95 +1,37 @@
 <template>
-  <div class="av-paths">
-    <div class="av-paths__header">
-      <h2>AV 刮削目录</h2>
-      <el-button type="primary" @click="openAdd">添加目录</el-button>
+  <div class="av-tasks">
+    <div class="av-tasks__header">
+      <h2>AV 刮削记录</h2>
+      <div>
+        <el-button @click="loadList">刷新</el-button>
+        <el-button type="danger" @click="clearAll">清空记录</el-button>
+      </div>
     </div>
 
     <el-table :data="list" border stripe v-loading="loading">
       <el-table-column prop="id" label="ID" width="60" />
-      <el-table-column prop="name" label="名称" min-width="120" />
-      <el-table-column prop="sourceType" label="来源类型" width="100">
-        <template #default="{ row }">{{ sourceTypeText(row.source_type) }}</template>
-      </el-table-column>
-      <el-table-column prop="source_path" label="源路径" min-width="200" show-overflow-tooltip />
-      <el-table-column prop="target_path" label="目标路径" min-width="200" show-overflow-tooltip />
-      <el-table-column prop="mode" label="操作方式" width="130">
-        <template #default="{ row }">{{ modeText(row.mode) }}</template>
-      </el-table-column>
-      <el-table-column prop="move_method" label="整理方式" width="100">
-        <template #default="{ row }">{{ moveMethodText(row.move_method) }}</template>
-      </el-table-column>
-      <el-table-column prop="enable" label="启用" width="80">
+      <el-table-column prop="code" label="番号" width="120" />
+      <el-table-column prop="file_path" label="文件路径" min-width="280" show-overflow-tooltip />
+      <el-table-column prop="status" label="状态" width="100">
         <template #default="{ row }">
-          <el-tag :type="row.enable ? 'success' : 'info'">{{ row.enable ? '启用' : '禁用' }}</el-tag>
+          <el-tag :type="statusType(row.status)">{{ statusText(row.status) }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="240" fixed="right">
-        <template #default="{ row }">
-          <el-button size="small" type="primary" @click="scan(row.id)">扫描</el-button>
-          <el-button size="small" @click="openEdit(row)">编辑</el-button>
-          <el-button size="small" type="danger" @click="del(row.id)">删除</el-button>
-        </template>
+      <el-table-column prop="provider" label="刮削源" width="160" show-overflow-tooltip />
+      <el-table-column prop="message" label="信息" min-width="200" show-overflow-tooltip />
+      <el-table-column prop="created_at" label="时间" width="180">
+        <template #default="{ row }">{{ formatTime(row.created_at) }}</template>
       </el-table-column>
     </el-table>
 
-    <el-dialog v-model="dialogVisible" :title="editId ? '编辑 AV 刮削目录' : '添加 AV 刮削目录'" width="700px">
-      <el-form :model="form" label-width="120px">
-        <el-form-item label="名称">
-          <el-input v-model="form.name" placeholder="给这个刮削目录起个名字" />
-        </el-form-item>
-
-        <el-form-item label="来源类型">
-          <el-radio-group v-model="form.source_type" @change="onSourceTypeChange">
-            <el-radio-button label="115">115 网盘</el-radio-button>
-            <el-radio-button label="openlist">OpenList</el-radio-button>
-            <el-radio-button label="local">本地目录</el-radio-button>
-          </el-radio-group>
-        </el-form-item>
-
-        <el-form-item v-if="form.source_type !== 'local'" label="网盘账号">
-          <el-select v-model="form.account_id" placeholder="选择账号" style="width: 100%">
-            <el-option v-for="a in accountList" :key="a.id" :label="a.name || a.username" :value="a.id" />
-          </el-select>
-        </el-form-item>
-
-        <el-form-item label="源路径">
-          <el-input v-model="form.source_path" placeholder="例如：/AV/待整理" />
-        </el-form-item>
-
-        <el-form-item label="目标路径">
-          <el-input v-model="form.target_path" placeholder="例如：/AV/已整理" />
-        </el-form-item>
-
-        <el-form-item label="操作方式">
-          <el-radio-group v-model="form.mode">
-            <el-radio-button label="scrape_only">仅刮削</el-radio-button>
-            <el-radio-button label="scrape_and_rename">刮削和整理</el-radio-button>
-            <el-radio-button label="rename_only">仅整理</el-radio-button>
-          </el-radio-group>
-        </el-form-item>
-
-        <el-form-item label="整理方式">
-          <el-radio-group v-model="form.move_method">
-            <el-radio-button label="move">移动</el-radio-button>
-            <el-radio-button label="copy">复制</el-radio-button>
-          </el-radio-group>
-        </el-form-item>
-
-        <el-form-item label="命名模板">
-          <el-input v-model="form.name_template" placeholder="{code}" />
-        </el-form-item>
-
-        <el-form-item label="启用">
-          <el-switch v-model="form.enable" />
-        </el-form-item>
-      </el-form>
-
-      <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="save">保存</el-button>
-      </template>
-    </el-dialog>
+    <el-pagination
+      v-model:current-page="page"
+      :page-size="pageSize"
+      :total="total"
+      layout="prev, pager, next, total"
+      style="margin-top: 16px; text-align: right"
+      @current-change="loadList"
+    />
   </div>
 </template>
 
@@ -99,136 +41,56 @@ import axios from 'axios'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const list = ref<any[]>([])
+const total = ref(0)
+const page = ref(1)
+const pageSize = ref(20)
 const loading = ref(false)
-const dialogVisible = ref(false)
-const editId = ref<number | null>(null)
-const accountList = ref<any[]>([])
 
-const form = ref({
-  name: '',
-  source_type: '115',
-  account_id: 0,
-  source_path: '',
-  target_path: '',
-  mode: 'scrape_and_rename',
-  move_method: 'move',
-  name_template: '{code}',
-  enable: true,
-})
-
-const sourceTypeText = (t: string) => {
-  return { '115': '115 网盘', openlist: 'OpenList', local: '本地目录' }[t] || t
+const statusText = (s: string) => {
+  return { done: '成功', failed: '失败', pending: '等待中', running: '进行中' }[s] || s
 }
-const modeText = (m: string) => {
-  return { scrape_only: '仅刮削', scrape_and_rename: '刮削和整理', rename_only: '仅整理' }[m] || m
+const statusType = (s: string) => {
+  return { done: 'success', failed: 'danger', pending: 'info', running: 'warning' }[s] as any
 }
-const moveMethodText = (m: string) => {
-  return { move: '移动', copy: '复制' }[m] || m
+const formatTime = (t: string) => {
+  if (!t) return ''
+  return new Date(t).toLocaleString('zh-CN', { hour12: false })
 }
 
 const loadList = async () => {
   loading.value = true
   try {
-    const res = await axios.get('/api/avscrape/paths')
+    const res = await axios.get('/api/avscrape/tasks', {
+      params: { page: page.value, page_size: pageSize.value },
+    })
     list.value = res.data.list || []
+    total.value = res.data.total || 0
   } catch {
-    ElMessage.error('加载目录列表失败')
+    ElMessage.error('加载记录失败')
   } finally {
     loading.value = false
   }
 }
 
-const loadAccounts = async () => {
+const clearAll = async () => {
   try {
-    const res = await axios.get('/api/account/list')
-    accountList.value = res.data.data || []
-  } catch {
-    // ignore
-  }
-}
-
-const onSourceTypeChange = () => {
-  form.value.account_id = 0
-}
-
-const openAdd = () => {
-  editId.value = null
-  form.value = {
-    name: '',
-    source_type: '115',
-    account_id: 0,
-    source_path: '',
-    target_path: '',
-    mode: 'scrape_and_rename',
-    move_method: 'move',
-    name_template: '{code}',
-    enable: true,
-  }
-  dialogVisible.value = true
-}
-
-const openEdit = (row: any) => {
-  editId.value = row.id
-  form.value = {
-    name: row.name,
-    source_type: row.source_type,
-    account_id: row.account_id,
-    source_path: row.source_path,
-    target_path: row.target_path,
-    mode: row.mode,
-    move_method: row.move_method,
-    name_template: row.name_template || '{code}',
-    enable: row.enable,
-  }
-  dialogVisible.value = true
-}
-
-const save = async () => {
-  try {
-    if (editId.value) {
-      await axios.put(`/api/avscrape/paths/${editId.value}`, form.value)
-    } else {
-      await axios.post('/api/avscrape/paths', form.value)
-    }
-    ElMessage.success('保存成功')
-    dialogVisible.value = false
-    await loadList()
-  } catch (e: any) {
-    ElMessage.error(e.response?.data?.error || '保存失败')
-  }
-}
-
-const del = async (id: number) => {
-  try {
-    await ElMessageBox.confirm('确定删除这个刮削目录？', '提示', { type: 'warning' })
-    await axios.delete(`/api/avscrape/paths/${id}`)
-    ElMessage.success('删除成功')
+    await ElMessageBox.confirm('确定清空所有刮削记录？', '提示', { type: 'warning' })
+    await axios.delete('/api/avscrape/tasks')
+    ElMessage.success('已清空')
     await loadList()
   } catch {
     // cancelled
   }
 }
 
-const scan = async (id: number) => {
-  try {
-    await axios.post(`/api/avscrape/paths/${id}/scan`)
-    ElMessage.success('扫描已启动，请稍后到「AV 刮削记录」查看')
-  } catch {
-    ElMessage.error('启动扫描失败')
-  }
-}
-
-onMounted(() => {
-  loadList()
-  loadAccounts()
-})
+onMounted(loadList)
 </script>
 
 <style scoped>
-.av-paths {
+.av-tasks {
   padding: 20px;
 }
-.av-paths__header {
+.av-tasks__header {
   display: flex;
   justify-content: space-between;
   align-items: center;
