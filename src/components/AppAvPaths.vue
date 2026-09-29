@@ -86,9 +86,19 @@
         </el-form-item>
 
         <el-form-item label="命名模板">
-          <el-input v-model="form.name_template" placeholder="{code}" />
+          <el-input v-model="form.name_template" placeholder="{actor}/{number}" />
+          <div style="font-size: 12px; color: #999; margin-top: 4px">
+            可用变量：<code>{actor}</code> 首个演员、
+            <code>{actors}</code> 全部演员、
+            <code>{number}</code> 番号、
+            <code>{title}</code> 标题、
+            <code>{year}</code> 年份、
+            <code>{studio}</code> 片商、
+            <code>{label}</code> 厂牌、
+            <code>{series}</code> 系列
+          </div>
         </el-form-item>
-
+        
         <el-form-item label="启用">
           <el-switch v-model="form.enable" />
         </el-form-item>
