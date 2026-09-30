@@ -14,15 +14,31 @@
       <el-form-item label="JavStash API Key">
         <el-input v-model="config.javstash_api_key" type="password" show-password />
       </el-form-item>
+
       <el-form-item label="开启翻译">
         <el-switch v-model="config.enable_translate" />
       </el-form-item>
       <el-form-item label="翻译引擎">
         <el-select v-model="config.translate_engine" style="width: 100%">
+          <el-option label="DeepL（推荐）" value="deepl" />
+          <el-option label="必应翻译（Azure）" value="bing" />
           <el-option label="Google 免费" value="google_free" />
-          <el-option label="LibreTranslate" value="libretranslate" />
+          <el-option label="MyMemory" value="mymemory" />
         </el-select>
       </el-form-item>
+      <el-form-item label="DeepL API Key" v-if="config.translate_engine === 'deepl'">
+        <el-input v-model="config.translate_deepl_key" placeholder="以 :fx 结尾" show-password />
+      </el-form-item>
+      <el-form-item label="必应 API Key" v-if="config.translate_engine === 'bing'">
+        <el-input v-model="config.translate_bing_key" placeholder="Azure Translator KEY" />
+      </el-form-item>
+      <el-form-item label="必应 Region" v-if="config.translate_engine === 'bing'">
+        <el-input v-model="config.translate_bing_region" placeholder="例如 eastasia" />
+      </el-form-item>
+      <el-form-item label="翻译目标语言">
+        <el-input v-model="config.translate_target" placeholder="zh" />
+      </el-form-item>
+
       <el-form-item label="优先中文源">
         <el-switch v-model="config.prefer_chinese_source" />
       </el-form-item>
@@ -45,6 +61,10 @@ interface AVConfig {
   javstash_api_key: string
   enable_translate: boolean
   translate_engine: string
+  translate_deepl_key: string
+  translate_bing_key: string
+  translate_bing_region: string
+  translate_target: string
   prefer_chinese_source: boolean
 }
 
@@ -54,7 +74,11 @@ const config = ref<AVConfig>({
   enable_javstash: false,
   javstash_api_key: '',
   enable_translate: false,
-  translate_engine: 'google_free',
+  translate_engine: 'deepl',
+  translate_deepl_key: '',
+  translate_bing_key: '',
+  translate_bing_region: '',
+  translate_target: 'zh',
   prefer_chinese_source: true,
 })
 
