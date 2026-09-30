@@ -8,12 +8,24 @@
       <el-form-item label="MetaTube 地址">
         <el-input v-model="config.metatube_server" placeholder="https://metatube-server.hf.space" />
       </el-form-item>
+
       <el-form-item label="启用 JavStash">
         <el-switch v-model="config.enable_javstash" />
       </el-form-item>
       <el-form-item label="JavStash API Key">
         <el-input v-model="config.javstash_api_key" type="password" show-password />
       </el-form-item>
+
+      <el-divider content-position="left">评分</el-divider>
+
+      <el-form-item label="启用 JavDB 评分">
+        <el-switch v-model="config.enable_javdb_rating" />
+      </el-form-item>
+      <el-form-item label="JavDB API 端点" v-if="config.enable_javdb_rating">
+        <el-input v-model="config.javdb_endpoint" placeholder="例如 https://jdforrepam.com" />
+      </el-form-item>
+
+      <el-divider content-position="left">翻译</el-divider>
 
       <el-form-item label="开启翻译">
         <el-switch v-model="config.enable_translate" />
@@ -39,9 +51,12 @@
         <el-input v-model="config.translate_target" placeholder="zh" />
       </el-form-item>
 
+      <el-divider content-position="left">其他</el-divider>
+
       <el-form-item label="优先中文源">
         <el-switch v-model="config.prefer_chinese_source" />
       </el-form-item>
+
       <el-form-item>
         <el-button type="primary" @click="saveConfig">保存</el-button>
       </el-form-item>
@@ -59,6 +74,8 @@ interface AVConfig {
   metatube_server: string
   enable_javstash: boolean
   javstash_api_key: string
+  enable_javdb_rating: boolean
+  javdb_endpoint: string
   enable_translate: boolean
   translate_engine: string
   translate_deepl_key: string
@@ -73,6 +90,8 @@ const config = ref<AVConfig>({
   metatube_server: 'https://metatube-server.hf.space',
   enable_javstash: false,
   javstash_api_key: '',
+  enable_javdb_rating: false,
+  javdb_endpoint: '',
   enable_translate: false,
   translate_engine: 'deepl',
   translate_deepl_key: '',
