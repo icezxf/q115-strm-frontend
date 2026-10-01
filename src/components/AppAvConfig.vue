@@ -19,6 +19,10 @@
       <el-form-item label="优先中文源">
         <el-switch v-model="config.prefer_chinese_source" />
       </el-form-item>
+      <el-form-item label="oshash 优先匹配">
+        <el-switch v-model="config.enable_oshash_match" />
+        <span class="hint">（用 oshash 优先在 JavStash 精确匹配，适合多碟/乱名文件）</span>
+      </el-form-item>
 
       <el-divider content-position="left">评分</el-divider>
 
@@ -30,11 +34,8 @@
           v-model="config.javdb_cookie"
           type="textarea"
           :rows="4"
-          placeholder="从浏览器 F12 → Network → 任意 javdb 请求的 Request Headers 里复制完整 Cookie（必须含 cf_clearance）"
+          placeholder="从浏览器 F12 复制完整 Cookie（必须含 cf_clearance）"
         />
-        <div class="hint">
-          提示：Cookie 有效期通常几天到几周，过期后需要重新复制
-        </div>
       </el-form-item>
 
       <el-divider content-position="left">翻译</el-divider>
@@ -44,8 +45,8 @@
       </el-form-item>
       <el-form-item label="翻译引擎" v-if="config.enable_translate">
         <el-select v-model="config.translate_engine" style="width: 100%">
-          <el-option label="Gemini AI（推荐，翻译质量最好）" value="gemini" />
-          <el-option label="DeepL（免费版，每月 50 万字符）" value="deepl" />
+          <el-option label="Gemini AI（推荐）" value="gemini" />
+          <el-option label="DeepL（免费版）" value="deepl" />
           <el-option label="必应翻译（Azure）" value="bing" />
           <el-option label="Google 免费" value="google_free" />
           <el-option label="MyMemory" value="mymemory" />
@@ -54,17 +55,13 @@
 
       <template v-if="config.enable_translate && config.translate_engine === 'gemini'">
         <el-form-item label="Gemini API Key">
-          <el-input
-            v-model="config.translate_gemini_key"
-            type="password"
-            show-password
-            placeholder="从 Google AI Studio 获取"
-          />
+          <el-input v-model="config.translate_gemini_key" type="password" show-password />
         </el-form-item>
         <el-form-item label="Gemini 模型">
           <el-select v-model="config.translate_gemini_model" style="width: 100%">
-            <el-option label="gemini-3.8-flash（推荐，速度快）" value="gemini-3.8-flash" />
-            <el-option label="gemini-3.1-pro-preview（更聪明，慢一点）" value="gemini-3.1-pro-preview" />
+            <el-option label="gemini-3.8-flash" value="gemini-3.8-flash" />
+            <el-option label="gemini-3.7-flash" value="gemini-3.7-flash" />
+            <el-option label="gemini-2.5-flash-lite" value="gemini-2.5-flash-lite" />
           </el-select>
         </el-form-item>
       </template>
@@ -78,7 +75,7 @@
 
       <template v-if="config.enable_translate && config.translate_engine === 'bing'">
         <el-form-item label="必应 API Key">
-          <el-input v-model="config.translate_bing_key" placeholder="Azure Translator KEY" />
+          <el-input v-model="config.translate_bing_key" />
         </el-form-item>
         <el-form-item label="必应 Region">
           <el-input v-model="config.translate_bing_region" placeholder="例如 eastasia" />
@@ -89,25 +86,31 @@
         <el-input v-model="config.translate_target" placeholder="zh" />
       </el-form-item>
 
-      <el-divider content-position="left">附加标签（作为 tag 写入 NFO）</el-divider>
+      <el-divider content-position="left">附加标签</el-divider>
 
       <el-form-item label="分辨率标签">
         <el-switch v-model="config.extra_tag_resolution" />
-        <span class="hint">（ffprobe 读取，生成 4K/1080p 等 tag）</span>
       </el-form-item>
       <el-form-item label="有码/无码标签">
         <el-switch v-model="config.extra_tag_uncensored" />
-        <span class="hint">（按番号前缀判断）</span>
       </el-form-item>
       <el-form-item label="中文字幕标签">
         <el-switch v-model="config.extra_tag_chinese_sub" />
-        <span class="hint">（检测文件名 + 外挂字幕）</span>
       </el-form-item>
 
-      <el-divider content-position="left">水印（打在 poster 和 thumb 左上角）</el-divider>
+      <el-divider content-position="left">水印</el-divider>
 
       <el-form-item label="4K 水印">
         <el-switch v-model="config.watermark_4k" />
+      </el-form-item>
+      <el-form-item label="5K 水印">
+        <el-switch v-model="config.watermark_5k" />
+      </el-form-item>
+      <el-form-item label="6K 水印">
+        <el-switch v-model="config.watermark_6k" />
+      </el-form-item>
+      <el-form-item label="7K 水印">
+        <el-switch v-model="config.watermark_7k" />
       </el-form-item>
       <el-form-item label="8K 水印">
         <el-switch v-model="config.watermark_8k" />
@@ -143,6 +146,7 @@ interface AVConfig {
   enable_javstash: boolean
   javstash_api_key: string
   prefer_chinese_source: boolean
+  enable_oshash_match: boolean
 
   enable_javdb_rating: boolean
   javdb_cookie: string
@@ -161,6 +165,9 @@ interface AVConfig {
   extra_tag_chinese_sub: boolean
 
   watermark_4k: boolean
+  watermark_5k: boolean
+  watermark_6k: boolean
+  watermark_7k: boolean
   watermark_8k: boolean
   watermark_subtitle: boolean
   watermark_crack: boolean
@@ -174,6 +181,7 @@ const config = ref<AVConfig>({
   enable_javstash: false,
   javstash_api_key: '',
   prefer_chinese_source: true,
+  enable_oshash_match: false,
 
   enable_javdb_rating: false,
   javdb_cookie: '',
@@ -192,6 +200,9 @@ const config = ref<AVConfig>({
   extra_tag_chinese_sub: true,
 
   watermark_4k: true,
+  watermark_5k: true,
+  watermark_6k: true,
+  watermark_7k: true,
   watermark_8k: true,
   watermark_subtitle: true,
   watermark_crack: true,
