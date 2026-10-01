@@ -25,8 +25,16 @@
       <el-form-item label="启用 JavDB 评分">
         <el-switch v-model="config.enable_javdb_rating" />
       </el-form-item>
-      <el-form-item label="JavDB API 端点" v-if="config.enable_javdb_rating">
-        <el-input v-model="config.javdb_endpoint" placeholder="例如 https://jdforrepam.com" />
+      <el-form-item label="JavDB Cookie" v-if="config.enable_javdb_rating">
+        <el-input
+          v-model="config.javdb_cookie"
+          type="textarea"
+          :rows="4"
+          placeholder="从浏览器 F12 → Network → 任意 javdb 请求的 Request Headers 里复制完整 Cookie（必须含 cf_clearance）"
+        />
+        <div class="hint">
+          提示：Cookie 有效期通常几天到几周，过期后需要重新复制
+        </div>
       </el-form-item>
 
       <el-divider content-position="left">翻译</el-divider>
@@ -46,8 +54,12 @@
 
       <template v-if="config.enable_translate && config.translate_engine === 'gemini'">
         <el-form-item label="Gemini API Key">
-          <el-input v-model="config.translate_gemini_key" type="password" show-password
-                    placeholder="从 Google AI Studio 获取，通常以 AIza 或 AQ. 开头" />
+          <el-input
+            v-model="config.translate_gemini_key"
+            type="password"
+            show-password
+            placeholder="从 Google AI Studio 获取"
+          />
         </el-form-item>
         <el-form-item label="Gemini 模型">
           <el-select v-model="config.translate_gemini_model" style="width: 100%">
@@ -57,8 +69,10 @@
         </el-form-item>
       </template>
 
-      <el-form-item label="DeepL API Key"
-                    v-if="config.enable_translate && config.translate_engine === 'deepl'">
+      <el-form-item
+        label="DeepL API Key"
+        v-if="config.enable_translate && config.translate_engine === 'deepl'"
+      >
         <el-input v-model="config.translate_deepl_key" placeholder="以 :fx 结尾" show-password />
       </el-form-item>
 
@@ -162,7 +176,7 @@ const config = ref<AVConfig>({
   prefer_chinese_source: true,
 
   enable_javdb_rating: false,
-  javdb_endpoint: '',
+  javdb_cookie: '',
 
   enable_translate: false,
   translate_engine: 'gemini',
