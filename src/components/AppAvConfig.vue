@@ -131,7 +131,7 @@ interface AVConfig {
   prefer_chinese_source: boolean
 
   enable_javdb_rating: boolean
-  javdb_endpoint: string
+  javdb_cookie: string
 
   enable_translate: boolean
   translate_engine: string
